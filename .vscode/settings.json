@@ -1,0 +1,14 @@
+{
+    "Lua.runtime.version": "LuaJIT",
+    "Lua.runtime.special": {
+        "love.filesystem.load": "loadfile"
+    },
+    "Lua.workspace.library": [
+        "${3rd}/love2d/library",
+        "C:/Users/Bruno/AppData/Roaming/Code/User/globalStorage/sumneko.lua/addonManager/addons/love2d/module/library"
+    ],
+    "Lua.workspace.checkThirdParty": false,
+    "Lua.diagnostics.globals": [
+        "smallFont"
+    ]
+}
