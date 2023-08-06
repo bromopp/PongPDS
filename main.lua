@@ -18,10 +18,10 @@ function love.load()
 
 	love.graphics.setDefaultFilter('nearest','nearest')
 
-	smallFont = love.graphics.newFont('04B_30__.TTF', 14)
-	scoreFont = love.graphics.newFont('PressStart2P.TTF', 22)
-	fpsFont = love.graphics.newFont('PressStart2P.TTF', 7)
-	victoryFont = love.graphics.newFont('04B_30__.TTF',32)
+	SmallFont = love.graphics.newFont('04B_30__.TTF', 14)
+	ScoreFont = love.graphics.newFont('PressStart2P.TTF', 22)
+	FpsFont = love.graphics.newFont('PressStart2P.TTF', 7)
+	VictoryFont = love.graphics.newFont('04B_30__.TTF',32)
 	push:setupScreen(VIRTUAL_WIDTH,VIRTUAL_HEIGHT,WINDOW_WIDTH,WINDOW_HEIGHT, {
 		fullscreen = false,
 		vsync = true,
@@ -31,7 +31,7 @@ function love.load()
 	Player1Score = 0
 	Player2Score = 0
 
-	servingPlayer = math.random(2) == 1 and 1 or 2
+	ServingPlayer = math.random(2) == 1 and 1 or 2
 
 	LeftPaddle = Paddle(40, VIRTUAL_HEIGHT/2, 10, 40)
 	RightPaddle = Paddle(VIRTUAL_WIDTH - 50, VIRTUAL_HEIGHT/2, 10, 40)
@@ -40,7 +40,7 @@ function love.load()
 
 	Ball = Ball(VIRTUAL_WIDTH/2 -2, VIRTUAL_HEIGHT/2 -2, 10, 10)
 
-	projectiles_table = {}
+	Projectiles_table = {}
 	GameState = 'start'
 
 end
@@ -54,12 +54,12 @@ function love.update(dt)
 	--score
 		if Ball.x <= 0 then
 			Player2Score = Player2Score + 1
-			servingPlayer = 1
+			ServingPlayer = 1
 			Ball:reset()
 			Ball.dx = 100	
 			if Player2Score >= 3 then
 				GameState = 'victory'
-				winningPlayer = 2
+				WinningPlayer = 2
 			else
 				GameState = 'serve'
 			end
@@ -67,12 +67,12 @@ function love.update(dt)
 
 		if Ball.x >= VIRTUAL_WIDTH - 10 then
 			Player1Score = Player1Score + 1
-			servingPlayer = 2
+			ServingPlayer = 2
 			Ball:reset()
 			Ball.dx = -100
 			if Player1Score >= 3 then
 				GameState = 'victory'
-				winningPlayer = 1
+				WinningPlayer = 1
 			else
 				GameState = 'serve'
 			end
@@ -128,25 +128,20 @@ function love.update(dt)
 	--endregion
 	--region Projectile
 		if love.keyboard.isDown('1') and LeftPaddle.iceSpikeCD <= 0 then
-			projectile = Projectile(LeftPaddle.x, LeftPaddle.y, 5, 5, 1)
-			table.insert(projectiles_table, projectile)
+			local projectile = Projectile(LeftPaddle.x, LeftPaddle.y, 5, 5, 1)
+			table.insert(Projectiles_table, projectile)
 			LeftPaddle.iceSpikeCD = 10
 		end
 		local removeIndices = {}
-		for i,projectile in ipairs(projectiles_table) do
+		for i,projectile in ipairs(Projectiles_table) do
 			projectile:update(dt)
 			if projectile.isActive == false then
 				table.insert(removeIndices, i)
 			end
-			if projectile.owner == 1 and projectile.collides(RightPaddle) then
-				RightPaddle.freeztime = 3
-			end
-			 if projectile.owner == 2 and projectile.collides(LeftPaddle) then
-				LeftPaddle.freeztime = 3
-			end
+			FreezHit(projectile)
 		end
 		for i = #removeIndices, 1 , -1 do
-			table.remove(projectiles_table, removeIndices[i])
+			table.remove(Projectiles_table, removeIndices[i])
 		end
 		if LeftPaddle.iceSpikeCD > 0 then
 			LeftPaddle.iceSpikeCD = LeftPaddle.iceSpikeCD - dt
@@ -163,7 +158,14 @@ function love.update(dt)
 	end
 
 end
-
+function FreezHit(projectile)
+	if projectile.owner == 1 and projectile:collides(RightPaddle) then
+		RightPaddle.freeztime = 3
+	end
+	if projectile.owner == 2 and projectile:collides(LeftPaddle) then
+		LeftPaddle.freeztime = 3
+	end
+end
 function love.keypressed(key)
 	if key == 'escape' then
 		love.event.quit()
@@ -197,25 +199,25 @@ function love.draw()
 --endregion
 	displayFPS()
 --region rTitle
-	love.graphics.setFont(smallFont)
+	love.graphics.setFont(SmallFont)
 	if GameState == 'start' then
 		love.graphics.printf("Press Enter To Start", 0, 20, VIRTUAL_WIDTH, 'center')
 	elseif GameState == 'serve'then
 		displayScore()
-		love.graphics.setFont(smallFont)
-		love.graphics.printf("Player " .. tostring(servingPlayer), 0, VIRTUAL_HEIGHT/3 - 20, VIRTUAL_WIDTH, 'center')
+		love.graphics.setFont(SmallFont)
+		love.graphics.printf("Player " .. tostring(ServingPlayer), 0, VIRTUAL_HEIGHT/3 - 20, VIRTUAL_WIDTH, 'center')
 		love.graphics.printf("Press Enter to Serve!", 0, VIRTUAL_HEIGHT/3, VIRTUAL_WIDTH, 'center')
 	elseif GameState == 'play' or GameState == 'pause' then
 		displayScore()
 	elseif GameState == 'victory' then
-		love.graphics.setFont(victoryFont)
-		love.graphics.printf("Player " .. tostring(winningPlayer) .. " Wins!", 0, VIRTUAL_HEIGHT/3 - 40, VIRTUAL_WIDTH, 'center')
-		love.graphics.setFont(smallFont)
+		love.graphics.setFont(VictoryFont)
+		love.graphics.printf("Player " .. tostring(WinningPlayer) .. " Wins!", 0, VIRTUAL_HEIGHT/3 - 40, VIRTUAL_WIDTH, 'center')
+		love.graphics.setFont(SmallFont)
 		love.graphics.printf("Press Enter to Restart!", 0, VIRTUAL_HEIGHT/3, VIRTUAL_WIDTH, 'center')
 	end
 --endregion
 --region rProjectiles
-	for _,projectile in ipairs(projectiles_table) do
+	for _,projectile in ipairs(Projectiles_table) do
 		projectile:render()
 	end
 --endregion
@@ -224,14 +226,14 @@ end
 
 function displayFPS()
 	love.graphics.setColor(0, 1, 0, 1/3)
-	love.graphics.setFont(fpsFont)
+	love.graphics.setFont(FpsFont)
 	love.graphics.print('FPS: ' .. tostring(love.timer.getFPS( )), 780, 10)
 	love.graphics.setColor(1, 1, 1, 1)
 end
 
 function displayScore()
-	love.graphics.setFont(scoreFont)	
-	love.graphics.print(Player1Score, VIRTUAL_WIDTH/2 - 60, VIRTUAL_HEIGHT/12)
+	love.graphics.setFont(ScoreFont)	
+	love.graphics.print(tostring(Player1Score), VIRTUAL_WIDTH/2 - 60, VIRTUAL_HEIGHT/12)
 	love.graphics.print('-', VIRTUAL_WIDTH/2 - 15, VIRTUAL_HEIGHT/12)
-	love.graphics.print(Player2Score, VIRTUAL_WIDTH/2 + 30, VIRTUAL_HEIGHT/12)
+	love.graphics.print(tostring(Player2Score), VIRTUAL_WIDTH/2 + 30, VIRTUAL_HEIGHT/12)
 end

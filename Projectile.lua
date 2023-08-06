@@ -26,12 +26,11 @@ function Projectile:render()
 	love.graphics.circle('fill', self.x, self.y, self.width)
 end
 
-function Projectile:collides(box)
-	print(self)
-	if self.x > box.x + box.width or self.x + self.width < box.x then
+function Projectile:collides(b)
+	if self.x > b.x + b.width or self.x + self.width < b.x then
 		return false
 	end
-	if self.y > box.y + box.height or self.y + self.height < box.y then
+	if self.y > b.y + b.height or self.y + self.height < b.y then
 		return false
 	end
 	return true
